@@ -7,6 +7,9 @@ return array(
         'ZfcUser',
         'ZfcBase',
         'SpeckCatalog',
+        'Jquery',
+        'JqueryUi',
+        'TwitterBootstrapFull',
     ),
     'module_listener_options' => array( 
         'config_cache_enabled'    => false,
