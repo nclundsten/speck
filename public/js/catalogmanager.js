@@ -21,6 +21,7 @@ function entitySearch(trigger){
         clearTarget()
         $(trigger).parentsUntil('.list-wrap').parent().children('.list-items').first().addClass('target')
         $('#modal-box').modal('show')
+        popovers(); 
     })
 }
 
@@ -61,6 +62,13 @@ function appendPartial(ele){
     scrollLiveTarget()
     doSort()  
 }   
+
+function popovers(){
+    console.log('popovers set');
+    $("a[rel=popover]").popover({offset: 10})
+}
+
+
 
 function appendPartialAjax(ele){
     clearTarget()
@@ -138,6 +146,9 @@ $(document).ready(function(){
         entitySearch($(this)) 
         $(this).val('')
     })
+    
+    //popovers
+
     
     initialCollapse()
     doSort()
