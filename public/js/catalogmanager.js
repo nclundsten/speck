@@ -11,7 +11,7 @@ function doSort(){
             //}) 															 
         }
     })
-}   
+}       
 
 function entitySearch(trigger){
     var entityClass = trigger.attr('entityClass')
@@ -30,7 +30,13 @@ function clearTarget(){
 }
 
 $('.modal-search-result').live('click', function(){
-    $.get("/catalogmanager/live-partial?className="+$(this).attr('className')+"&entityId="+$(this).attr('entityId'), function(html) {
+    if($(this).attr('parentid')){
+        var parentIdString = '&parentId='+$(this).attr('parentId');
+        console.log('yes');
+    }else{
+        var parentIdString = '';
+    }
+    $.get("/catalogmanager/live-partial?className="+$(this).attr('className')+"&entityId="+$(this).attr('entityId')+parentIdString, function(html) {
         $('#modal-box').modal('hide')
         $('.target').append(html)
         scrollLiveTarget()
@@ -92,64 +98,68 @@ function entityOptions(trigger){
     })   
     $('#myMenu').css({ top: $(trigger).offset().top+10, left: $(trigger).offset().left+20 }).show()
     $('#myMenu').find('A').unbind('click')
-    $('#myMenu').find('.menuItem').live('click', function(){
-        executeOption($(this).attr('id'), $('#myMenu').data('trigger'));
-        $('#myMenu').hide();
-    })        
 }
+$('#myMenu').find('.menuItem').live('click', function(){
+   executeOption($(this).attr('id'), $('#myMenu').data('trigger'));
+   $('#myMenu').hide();
+})
 
 function executeOption(option, trigger){
     
      if(option === 'save'){
         console.log('saving');
         $(trigger).removeClass('notice')
+        var form = $(trigger).parents('.entity').find('form');
+        var parts = form.attr('id').split('-');
+        $.post('/catalogmanager/update-record?className='+parts[0]+'&id='+parts[1], form.serializeArray(), function(response){
+            console.log(response);
+        })
      }
 
 };
 
+
+$('.collapser').live("click", function(){ collapse(this) })
 function collapse(trigger){
     $(trigger).toggleClass('ui-icon-triangle-1-s ui-icon-triangle-1-e').parent().parent().siblings().slideToggle()
 }
 function initialCollapse(){
     $('.initialCollapse').toggleClass('ui-icon-triangle-1-s ui-icon-triangle-1-e')
         .removeClass('initialCollapse').parent().parent().siblings().hide()
-}
+}    
+
+
+
+$('.live-form input, .live-form textarea, .live-form select').live('change', function(){ liveFormChanged(this); })
+$('.addButton').live('click', function(){ appendPartial(this) })
+$('.addButtonAjax').live('click', function(){ appendPartialAjax(this) })
+
+$('.import-modal').live("change", function(){
+    entitySearch($(this)) 
+    $(this).val('')
+})
+
+$('.entity-header').live({
+    mouseenter:function(){$(this).children().find('.remover').removeClass('hide')},
+    mouseleave:function(){$(this).children().find('.remover').addClass('hide')}
+})
+
+$('.entity-title').live('contextmenu', function(e){
+    e.preventDefault();
+    entityOptions(this);
+});
+
+$('.remover').live("dblclick", function(){
+    $(this).parent().parent().parent().addClass('deported').slideUp(function(){$(this).remove()})
+    console.log('remove');
+})
+
+$('.import-one-modal').live("change", function(){
+    entitySearch($(this)) 
+    $(this).val('')
+})  
 
 $(document).ready(function(){
-
-    $('.live-form input, .live-form textarea, .live-form select').live('change', function(){ liveFormChanged(this); })
-    $('.addButton').live('click', function(){ appendPartial(this) })
-    $('.addButtonAjax').live('click', function(){ appendPartialAjax(this) })
-    $('.collapser').live("click", function(){ collapse(this) })
-    
-    $('.import-modal').live("change", function(){
-        entitySearch($(this)) 
-        $(this).val('')
-    })
-
-    $('.entity-header').live({
-        mouseenter:function(){$(this).children().find('.remover').removeClass('hide')},
-        mouseleave:function(){$(this).children().find('.remover').addClass('hide')}
-    })
-
-    $('.entity-title').live('contextmenu', function(e){
-        e.preventDefault();
-        entityOptions(this);
-    });
-
-    $('.remover').live("dblclick", function(){
-        $(this).parent().parent().parent().addClass('deported').slideUp(function(){$(this).remove()})
-        console.log('remove');
-    })
-
-    $('.import-one-modal').live("change", function(){
-        entitySearch($(this)) 
-        $(this).val('')
-    })
-    
-    //popovers
-
-    
     initialCollapse()
     doSort()
 })   
