@@ -14,37 +14,32 @@ function doSort(){
 }       
 
 function entitySearch(trigger){
-    var entityClass = trigger.attr('entityClass')
-    var title = 'Search for '+entityClass+': "'+trigger.val()+'"'
-    $.get("/catalogmanager/entity-search?className="+entityClass+"&value="+trigger.val(), function(html) {
-        populateModal(html, title)
-        clearTarget()
-        $(trigger).parentsUntil('.list-wrap').parent().children('.list-items').first().addClass('target')
-        $('#modal-box').modal('show')
-        popovers(); 
-    })
-}
-
-function clearTarget(){
-    $('.target').removeClass('target')
-}
-
-$('.modal-search-result').live('click', function(){
-    if($(this).attr('parentid')){
-        var parentIdString = '&parentId='+$(this).attr('parentId');
-        console.log('yes');
-    }else{
-        var parentIdString = '';
+    var data = {
+        className: $(trigger).attr('className'),
+        parentId:  $(trigger).attr('parentId'),
+        value:     $(trigger).val(),
     }
-    $.get("/catalogmanager/live-partial?className="+$(this).attr('className')+"&entityId="+$(this).attr('entityId')+parentIdString, function(html) {
-        $('#modal-box').modal('hide')
-        $('.target').append(html)
-        scrollLiveTarget()
-        doSort()
+    $.post("/catalogmanager/entity-search", data, function(html) {
+        populateModal(html, 'Results')
+        targetListItems(trigger); showModal(); popovers(); 
     })
-})
+}
 
-function scrollLiveTarget(){
+function targetListItems(trigger){
+    clearTarget(); 
+    $(trigger).parentsUntil('.list-wrap').parent().children('.list-items').first().addClass('target')
+}
+
+function getBoundary(ele){ return $(ele).parentsUntil('.boundary').parent() }
+function showModal(){ $('#modal-box').modal('show') }
+function hideModal(){ $('#modal-box').modal('hide') }
+function clearTarget(){ $('.target').removeClass('target') }
+function popovers(){ $("a[rel=popover]").popover({offset: 10}) }
+function populateModal(html, title){ $('.modal-header h3').text(title); $('.modal-body').html(html) }
+
+
+
+function appear(){
     initialCollapse()
     $('.target').children().last().hide().addClass('imported').slideDown(200, function(){
         $(this).removeClass('imported', 200)
@@ -52,43 +47,34 @@ function scrollLiveTarget(){
     $('.target').parent().prev('.import-one').removeClass('hide') //display the stuff that goes with the imported
     $('.target').next('.remove').remove()
     clearTarget()
-}
-
-function populateModal(html, title){
-    if(!title){ var title="popup" }
-    $('.modal-header h3').text(title) 
-    $('.modal-body').html(html)
+    doSort();
 }
 
 function appendPartial(ele){
-    clearTarget()
-    $(ele).parentsUntil('.list-wrap').parent().children('.list-items').first().addClass('target')
+    alert('not this');
+    targetListItems(ele)
     $(ele).parentsUntil('.list-wrap').parent().children('.hide').first().clone().removeClass('hide') // clone
-          .appendTo($(ele).parentsUntil('.list-wrap').parent().children('.list-items').first())       // append it
-    scrollLiveTarget()
-    doSort()  
+          .appendTo($('.target'))       // append it
+    appear()
 }   
 
-function popovers(){
-    console.log('popovers set');
-    $("a[rel=popover]").popover({offset: 10})
-}
-
-
-
-function appendPartialAjax(ele){
-    clearTarget()
-    $(ele).parentsUntil('.list-wrap').parent().children('.list-items').first().addClass('target');
-    $.get("/catalogmanager/live-partial?className=option", function(html) {
+function newPartial(ele){
+    targetListItems(ele);
+    var data = {
+        isNew:       1,
+        className:   $(ele).attr('className'), 
+        parentId:    $(ele).attr('parentId'),
+        parentClassName: $(ele).attr('parentClassName'),
+    }
+    $.post("/catalogmanager/fetch-partial", data, function(html) {
         $('#modal-box').modal('hide');
         $('.target').append(html);
-        scrollLiveTarget();
-        doSort();
+        appear();
     }); 
 };
 
 function liveFormChanged(trigger){
-    var title = $(trigger).parents('.entity').first().children('.entity-header').find('.entity-title')
+    var title = getBoundary(trigger).children('.entity-header').find('.entity-title')
     $(title).addClass('notice')
 }
 
@@ -97,7 +83,6 @@ function entityOptions(trigger){
         $('#myMenu').html(html).data('trigger', trigger);
     })   
     $('#myMenu').css({ top: $(trigger).offset().top+10, left: $(trigger).offset().left+20 }).show()
-    $('#myMenu').find('A').unbind('click')
 }
 $('#myMenu').find('.menuItem').live('click', function(){
    executeOption($(this).attr('id'), $('#myMenu').data('trigger'));
@@ -105,33 +90,40 @@ $('#myMenu').find('.menuItem').live('click', function(){
 })
 
 function executeOption(option, trigger){
-    
-     if(option === 'save'){
-        console.log('saving');
-        $(trigger).removeClass('notice')
-        var form = $(trigger).parents('.entity').find('form');
+    if(option === 'save'){
+        var form = $(trigger).parents('.boundary').first().find('form');
         var parts = form.attr('id').split('-');
-        $.post('/catalogmanager/update-record?className='+parts[0]+'&id='+parts[1], form.serializeArray(), function(response){
-            console.log(response);
+        $.post('/catalogmanager/update-record?className='+parts[0]+'&id='+parts[1], form.serializeArray(), function(){
+            $(trigger).removeClass('notice')
         })
-     }
-
+    }
 };
 
-
-$('.collapser').live("click", function(){ collapse(this) })
-function collapse(trigger){
-    $(trigger).toggleClass('ui-icon-triangle-1-s ui-icon-triangle-1-e').parent().parent().siblings().slideToggle()
-}
 function initialCollapse(){
     $('.initialCollapse').toggleClass('ui-icon-triangle-1-s ui-icon-triangle-1-e')
         .removeClass('initialCollapse').parent().parent().siblings().hide()
 }    
 
+$('.modal-search-result').live('click', function(){
+    var data = { 
+        parentId: $(this).attr('parentid'), 
+        entityId: $(this).attr('entityId'), 
+        className: $(this).attr('className')
+    }
+    $.post("/catalogmanager/fetch-partial", data, function(html) {
+            hideModal();
+            $('.target').append(html)
+            appear()
+    })
+})  
 
+$('.collapser').live("click", function(){ collapse(this) })
+function collapse(trigger){
+    $(trigger).toggleClass('ui-icon-triangle-1-s ui-icon-triangle-1-e').parent().parent().siblings().slideToggle()
+}
 
 $('.live-form input, .live-form textarea, .live-form select').live('change', function(){ liveFormChanged(this); })
-$('.addButton').live('click', function(){ appendPartial(this) })
+$('.addButton').live('click', function(){ newPartial(this) })
 $('.addButtonAjax').live('click', function(){ appendPartialAjax(this) })
 
 $('.import-modal').live("change", function(){
@@ -150,8 +142,7 @@ $('.entity-title').live('contextmenu', function(e){
 });
 
 $('.remover').live("dblclick", function(){
-    $(this).parent().parent().parent().addClass('deported').slideUp(function(){$(this).remove()})
-    console.log('remove');
+    getBoundary($(this)).addClass('deported').fadeOut(function(){$(this).remove()})
 })
 
 $('.import-one-modal').live("change", function(){
