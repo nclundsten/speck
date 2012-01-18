@@ -40,7 +40,6 @@ function populateModal(html, title){ $('.modal-header h3').text(title); $('.moda
 
 
 function appear(){
-    initialCollapse()
     $('.target').children().last().hide().addClass('imported').slideDown(200, function(){
         $(this).removeClass('imported', 200)
     })
@@ -91,7 +90,8 @@ $('#myMenu').find('.menuItem').live('click', function(){
 
 function executeOption(option, trigger){
     if(option === 'save'){
-        var form = $(trigger).parents('.boundary').first().find('form');
+        var form = $(trigger).parentsUntil('.boundary').parent().find('form').first();
+        console.log(form);
         var parts = form.attr('id').split('-');
         $.post('/catalogmanager/update-record?className='+parts[0]+'&id='+parts[1], form.serializeArray(), function(){
             $(trigger).removeClass('notice')
