@@ -13,17 +13,27 @@ function doSort(){
     })
 }       
 
-function entitySearch(trigger){
+function searchClass(trigger){
     var data = {
         className: $(trigger).attr('className'),
         parentId:  $(trigger).attr('parentId'),
         value:     $(trigger).val(),
     }
-    $.post("/catalogmanager/entity-search", data, function(html) {
+    $.post("/catalogmanager/search-class", data, function(html) {
         populateModal(html, 'Results')
         targetListItems(trigger); showModal(); popovers(); 
     })
 }
+
+function searchClasses(trigger){
+    var data = {
+        value:     $(trigger).val(),
+    }
+    $.post("/catalogmanager/search-classes", data, function(html) {
+        populateModal(html, 'Results')
+        showModal(); popovers(); 
+    })
+} 
 
 function targetListItems(trigger){
     clearTarget(); 
@@ -127,9 +137,15 @@ $('.addButton').live('click', function(){ newPartial(this) })
 $('.addButtonAjax').live('click', function(){ appendPartialAjax(this) })
 
 $('.import-modal').live("change", function(){
-    entitySearch($(this)) 
+    searchClass($(this)) 
     $(this).val('')
+    return false;
 })
+
+$('.find-modal').live("change", function(){
+    searchClasses($(this)) 
+    $(this).val('')
+}) 
 
 $('.entity-header').live({
     mouseenter:function(){$(this).children().find('.remover').removeClass('hide')},
@@ -153,4 +169,5 @@ $('.import-one-modal').live("change", function(){
 $(document).ready(function(){
     initialCollapse()
     doSort()
+    $('.active').show()
 })   
