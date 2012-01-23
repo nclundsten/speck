@@ -10,6 +10,7 @@ return array(
         'Jquery',
         'JqueryUi',
         'TwitterBootstrapFull',
+        'SwmImporter',
     ),
     'module_listener_options' => array( 
         'config_cache_enabled'    => false,

@@ -83,16 +83,11 @@ function newPartial(ele){
 };
 
 function liveFormChanged(trigger){
-    var title = getBoundary(trigger).children('.entity-header').find('.entity-title')
-    $(title).addClass('notice')
+    executeOption('save', trigger);
+    //var title = getBoundary(trigger).children('.entity-header').find('.entity-title')
+    //$(title).addClass('notice')
 }
 
-function entityOptions(trigger){
-    $.get("/catalogmanager/entity-options-ajax", function(html) {
-        $('#myMenu').html(html).data('trigger', trigger);
-    })   
-    $('#myMenu').css({ top: $(trigger).offset().top+10, left: $(trigger).offset().left+20 }).show()
-}
 $('#myMenu').find('.menuItem').live('click', function(){
    executeOption($(this).attr('id'), $('#myMenu').data('trigger'));
    $('#myMenu').hide();
@@ -101,7 +96,6 @@ $('#myMenu').find('.menuItem').live('click', function(){
 function executeOption(option, trigger){
     if(option === 'save'){
         var form = $(trigger).parentsUntil('.boundary').parent().find('form').first();
-        console.log(form);
         var parts = form.attr('id').split('-');
         $.post('/catalogmanager/update-record?className='+parts[0]+'&id='+parts[1], form.serializeArray(), function(){
             $(trigger).removeClass('notice')
@@ -140,7 +134,7 @@ $('.import-modal').live("change", function(){
     searchClass($(this)) 
     $(this).val('')
     return false;
-})
+})                                                                                   
 
 $('.find-modal').live("change", function(){
     searchClasses($(this)) 
@@ -152,13 +146,27 @@ $('.entity-header').live({
     mouseleave:function(){$(this).children().find('.remover').addClass('hide')}
 })
 
-$('.entity-title').live('contextmenu', function(e){
-    e.preventDefault();
-    entityOptions(this);
-});
-
 $('.remover').live("dblclick", function(){
-    getBoundary($(this)).addClass('deported').fadeOut(function(){$(this).remove()})
+    var boundary = getBoundary($(this));
+    var parts = $(boundary).find('form').first().attr('id').split('-');
+    console.log($(parts));
+
+    if($(this).attr('parentId')){
+        var action = 'unlink';
+    }else{
+        var action = 'delete';
+    }
+    
+    var data = {
+        model:  parts[0],
+        id:     parts[1],
+        action: action,
+    }
+
+    $.post('/catalogmanager/remove', data, function(response){
+        console.log(response);
+    })
+    $(boundary).addClass('deported').fadeOut(function(){$(this).remove()})
 })
 
 $('.import-one-modal').live("change", function(){
