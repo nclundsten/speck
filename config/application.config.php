@@ -13,9 +13,9 @@ return array(
         'SwmImporter',
     ),
     'module_listener_options' => array( 
-        'config_cache_enabled'    => false,
-        'cache_dir'               => './data/cache',
-        'module_paths' => array(
+        'config_cache_enabled' => false,
+        'cache_dir'            => './data/cache',
+        'module_paths'         => array(
             './moduledev',
             './module',
             './vendor',
