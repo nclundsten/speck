@@ -20,6 +20,8 @@ function searchClass(trigger){
         className:       $(trigger).attr('className'),
         parentClassName: $(trigger).attr('parentClassName'),
         parentId:        $(trigger).attr('parentId'),
+        newPartialName:  $(trigger).attr('newPartialName'),
+        callback:        $(trigger).attr('callback'),
         value:           $(trigger).val(),
     }
     $.post("/catalogmanager/search-class", data, function(html) {
@@ -29,7 +31,6 @@ function searchClass(trigger){
         popovers() 
     })
 }
-
 
 //search all classes for rows matching the input text
 function searchClasses(trigger){
@@ -48,7 +49,7 @@ function populateModal(html, title){
         $('.modal-body').html(html) 
 }
 
-//do some fancy stuff to make the 'target' class appear 
+//do some fancy stuff to make the 'target'  appear 
 function appear(){
     $('.target').children().last().hide().addClass('appearing').slideDown(200, function(){
         $(this).removeClass('appearing', 200)
@@ -58,21 +59,23 @@ function appear(){
     doSort()
 }
 
-//request a new partial for corresponding class, then append it to the list
-function newPartial(ele){
-    targetListItems(ele)
+//get the partial for the clicked search result, and append it to the list
+function getPartial(ele){
     var data = {
-        isNew:       1,
-        className:   $(ele).attr('className'), 
-        parentId:    $(ele).attr('parentId'),
+        callback:        $(ele).attr('callback'),
+        className:       $(ele).attr('className'), 
+        parentId:        $(ele).attr('parentId'),
         parentClassName: $(ele).attr('parentClassName'),
+        newPartialName:  $(ele).attr('newPartialName'),
+        existingChildId: $(ele).attr('entityId'),
     }
     $.post("/catalogmanager/fetch-partial", data, function(html) {
         $('#modal-box').modal('hide')
         $('.target').append(html)
+        initialCollapse()
         appear()
     }) 
-}
+}    
 
 function executeOption(option, trigger){
     if(option === 'save'){
@@ -84,20 +87,6 @@ function executeOption(option, trigger){
         })
     }
 }
-
-function fetchPartial(ele){
-    var data = { 
-        parentId: $(ele).attr('parentid'), 
-        entityId: $(ele).attr('entityId'), 
-        className: $(ele).attr('className'),
-        parentClassName: $(ele).attr('parentClassName')
-    }
-    $.post("/catalogmanager/fetch-partial", data, function(html) {
-            hideModal()
-            $('.target').append(html)
-            appear()
-    })
-}  
 
 function remove(ele){
     var parts = getForm($(ele)).attr('id').split('-')
@@ -169,9 +158,9 @@ $('.collapser').live("click", function(){ collapse(this) })
 
 $('.live-form input, .live-form textarea, .live-form select').live('change', function(){ executeOption('save', this) })
 
-$('.addButton').live('click', function(){ newPartial(this) })
+$('.addButton').live('click', function(){ targetListItems(this); getPartial(this) })
 
-$('.modal-search-result').live('click', function(){ fetchPartial(this) })
+$('.modal-search-result').live('click', function(){ getPartial(this) }) 
 
 $('.expand-all').live('click', function(){
     collapseRecursively(this, 'expand')    
