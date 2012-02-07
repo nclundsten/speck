@@ -14,24 +14,6 @@ function doSort(){
     })
 }       
 
-//search the corresponding table(class) for rows matching the input text
-function searchClass(trigger){
-    var data = {
-        className:       $(trigger).attr('className'),
-        parentClassName: $(trigger).attr('parentClassName'),
-        parentId:        $(trigger).attr('parentId'),
-        newPartialName:  $(trigger).attr('newPartialName'),
-        callback:        $(trigger).attr('callback'),
-        value:           $(trigger).val(),
-    }
-    $.post("/catalogmanager/search-class", data, function(html) {
-        populateModal(html, 'Results')
-        targetListItems(trigger)
-        showModal()
-        popovers() 
-    })
-}
-
 //search all classes for rows matching the input text
 function searchClasses(trigger){
     var data = {
@@ -59,34 +41,15 @@ function appear(){
     doSort()
 }
 
-//get the partial for the clicked search result, and append it to the list
-function getPartial(ele){
-    var data = {
-        callback:        $(ele).attr('callback'),
-        className:       $(ele).attr('className'), 
-        parentId:        $(ele).attr('parentId'),
-        parentClassName: $(ele).attr('parentClassName'),
-        newPartialName:  $(ele).attr('newPartialName'),
-        existingChildId: $(ele).attr('entityId'),
-    }
+function getPartial(data){
     $.post("/catalogmanager/fetch-partial", data, function(html) {
         $('#modal-box').modal('hide')
         $('.target').append(html)
         initialCollapse()
         appear()
     }) 
-}    
+}  
 
-function executeOption(option, trigger){
-    if(option === 'save'){
-        var form = getForm(trigger)
-        var parts = form.attr('id').split('-')
-        targetTitle(trigger)
-        $.post('/catalogmanager/update-record?className='+parts[0]+'&id='+parts[1], form.serializeArray(), function(title){
-            $('.target').html('&nbsp; '+title)
-        })
-    }
-}
 
 function remove(ele){
     var parts = getForm($(ele)).attr('id').split('-')
@@ -156,11 +119,38 @@ function getForm(ele){ return getBoundary(ele).find('form').first() }
 
 $('.collapser').live("click", function(){ collapse(this) })
 
-$('.live-form input, .live-form textarea, .live-form select').live('change', function(){ executeOption('save', this) })
+$('.live-form input, .live-form textarea, .live-form select').live('change', function(){
+        var form = getForm(this)
+        var parts = form.attr('id').split('-')
+        $.post('/catalogmanager/update-record?className='+parts[0]+'&id='+parts[1], form.serializeArray(), function(title){
+            $('.target').html('&nbsp; '+title)
+        })    
+})
 
-$('.addButton').live('click', function(){ targetListItems(this); getPartial(this) })
+// add a new child class, append the partial
+$('.add-partial').live("submit",function(e){
+    e.preventDefault();
+    targetListItems(this); 
+    getPartial($(this).serializeArray());
+})
 
-$('.modal-search-result').live('click', function(){ getPartial(this) }) 
+// search for an exisiting class and link it, append the partial
+$('.import-search').live("submit",function(e){
+    e.preventDefault();
+    targetListItems(this); 
+    $.post("/catalogmanager/search-class", $(this).serializeArray(), function(html) {
+        populateModal(html, 'Results')
+        showModal()
+        popovers() 
+    })  
+})
+
+$('.search-result').live("click", function(e){
+    e.preventDefault();
+    var data = $(this).parents('.search-result-data').first().serializeArray();
+    console.log(data);
+    getPartial(data);
+})
 
 $('.expand-all').live('click', function(){
     collapseRecursively(this, 'expand')    
@@ -169,12 +159,6 @@ $('.expand-all').live('click', function(){
 $('.collapse-all').live('click', function(){
     collapseRecursively(this)    
 })
-
-$('.import-modal').live("change", function(){
-    searchClass($(this)) 
-    $(this).val('')
-    return false
-})                                                                                   
 
 $('.find-modal').live("change", function(){
     searchClasses($(this)) 
@@ -195,7 +179,6 @@ $('.list-wrap').live({
     mouseenter:function(){$(this).children('.list-items-helper').animate({opacity: 1.0}, 100)},
     mouseleave:function(){$(this).children('.list-items-helper').animate({opacity: 0.2}, 100)},
 })
-
 
 $('.remover').live("dblclick", function(){ remove(this) })
 
