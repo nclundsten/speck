@@ -1,191 +1,209 @@
-function doSort(){
-    $('.list-items').sortable({ 
-        opacity: 0.6, 
-        placeholder: 'sortable-placeholder', 
-        handle: '.sort-handle', 
-        axis: 'y',          
-        forcePlaceholderSize: true,
-        update: function() {
-            //var order = $(this).sortable("serialize") + '&action=updateRecordsListings' 
-            //$.post("updateDB.php", order, function(theResponse){
-            //    $("#contentRight").html(theResponse)
-            //}) 															 
-        }
-    })
-}       
-
-//search all classes for rows matching the input text
-function searchClasses(trigger){
-    var data = {
-        value:     $(trigger).val(),
+/**
+ * targeting
+ */
+    function getBoundary(ele){ 
+        return $(ele).parentsUntil('.boundary').parent().first() 
     }
-    $.post("/catalogmanager/search-classes", data, function(html) {
-        populateModal(html, 'Results')
-        showModal()
-        popovers()
-    })
-}
 
-function populateModal(html, title){ 
-    $('.modal-header h3').text(title) 
-        $('.modal-body').html(html) 
-}
-
-//do some fancy stuff to make the 'target'  appear 
-function appear(){
-    $('.target').children().last().hide().addClass('appearing').slideDown(200, function(){
-        $(this).removeClass('appearing', 200)
-    })
-    $('.remove').remove()
-    clearTarget()
-    doSort()
-}
-
-function getPartial(data){
-    $.post("/catalogmanager/fetch-partial", data, function(html) {
-        $('#modal-box').modal('hide')
-        $('.target').append(html)
-        initialCollapse()
-        appear()
-    }) 
-}  
-
-
-function remove(ele){
-    var parts = getForm($(ele)).attr('id').split('-')
-    if($(ele).attr('parentId')){
-        var action = 'unlink'
-    }else{
-        var action = 'delete'
+    function getForm(ele){ 
+        return getBoundary(ele).find('form').first() 
     }
-    var data = {
-        model:  parts[0],
-        id:     parts[1],
-        action: action,
+
+    function targetListItems(trigger){
+        clearTarget()
+        $(trigger).parentsUntil('.list-wrap').parent().children('.list-items').first().addClass('target')
     }
-    $.post('/catalogmanager/remove', data, function(response){
-        console.log(response)
+
+    function targetTitle(ele){
+        clearTarget()
+        getBoundary(ele).find('.title').first().addClass('target')
+    }
+
+    function getCollapser(ele){
+        return getBoundary(ele).find('span.collapser').first()
+    }
+
+    function getContent(ele){
+        return getBoundary(ele).find('.entity-content').first()
+    }
+
+    function clearTarget(){ $('.target').removeClass('target') }
+
+
+/**
+ * modals 
+ */
+    function goModal(html, title){ 
+        $('.modal-header h3').text(title) 
+        $('.modal-body').html(html)
+        $('#modal-box').modal('show')
+    }
+
+    function hideModal(){ 
+        $('#modal-box').modal('hide') 
+    }  
+
+
+/**
+ * searches
+ */
+    // search one class
+    $('.import-search').live("submit",function(e){
+        e.preventDefault();
+        targetListItems(this); 
+        $.post("/catalogmanager/search-class", $(this).serializeArray(), function(html) {
+            goModal(html, 'Results')
+        })  
     })
-    getBoundary($(ele)).addClass('removing').fadeOut(function(){$(ele).remove()})
-}
-
-function collapseRecursively(ele, action){
-    var headers = getBoundary(ele).children().find('.entity-header')
-    var collapsing = $(headers).siblings('.entity-content')
-    var collapsers = $(headers).find('.collapser')
-    if('expand' === action){
-        $(collapsing).show()
-        var add = 'ui-icon-triangle-1-s'
-        var rem = 'ui-icon-triangle-1-e'
-        $(collapsers).removeClass(rem).addClass(add)
-    }else{
-        $(collapsing).hide()
-        var add = 'ui-icon-triangle-1-e'
-        var rem = 'ui-icon-triangle-1-s' 
-        $(collapsers).removeClass(rem).addClass(add)
-    }
-}
-
-function targetListItems(trigger){
-    clearTarget()
-    $(trigger).parentsUntil('.list-wrap').parent().children('.list-items').first().addClass('target')
-}
-
-function targetTitle(ele){
-    clearTarget()
-    getBoundary(ele).find('.title').first().addClass('target');
-}
-
-function collapse(trigger){
-    getBoundary(trigger).find('span.collapser').first().toggleClass('ui-icon-triangle-1-s ui-icon-triangle-1-e').parent().parent().siblings().slideToggle(100)
-}
-
-function initialCollapse(){
-    $('.initialCollapse').toggleClass('ui-icon-triangle-1-s ui-icon-triangle-1-e')
-        .removeClass('initialCollapse').parent().parent().siblings().hide()
-}    
-
-function clearTarget(){ $('.target').removeClass('target') }
-
-function showModal(){ $('#modal-box').modal('show') }
-
-function hideModal(){ $('#modal-box').modal('hide') }
-
-function popovers(){ $("a[rel=popover]").popover({offset: 10}) }
     
-function getBoundary(ele){ return $(ele).parentsUntil('.boundary').parent().first() }
+    //search multiple classes //note: need to update this to work like the other one
+    $('.find-modal').live("change", function(){
+        searchClasses($(this)) 
+        $(this).val('')
+    })   
+    function searchClasses(trigger){
+        var data = {
+            value:     $(trigger).val(),
+        }
+        $.post("/catalogmanager/search-classes", data, function(html) {
+            goModal(html, 'Results')
+        })
+    }  
 
-function getForm(ele){ return getBoundary(ele).find('form').first() }
+    $('.search-result').live("click", function(e){
+        e.preventDefault();
+        var data = $(this).parents('.search-result-data').first().serializeArray();
+        console.log(data);
+        getPartial(data);
+    })
 
-$('.collapser').live("click", function(){ collapse(this) })
 
-$('.live-form input, .live-form textarea, .live-form select').live('change', function(){
+/**
+ *  auto-save
+ */
+    $('.live-form input, .live-form textarea, .live-form select').live('change', function(){
         var form = getForm(this)
         var parts = form.attr('id').split('-')
         $.post('/catalogmanager/update-record?className='+parts[0]+'&id='+parts[1], form.serializeArray(), function(title){
             $('.target').html('&nbsp; '+title)
         })    
-})
+    })
 
-// add a new child class, append the partial
-$('.add-partial').live("submit",function(e){
-    e.preventDefault();
-    targetListItems(this); 
-    getPartial($(this).serializeArray());
-})
 
-// search for an exisiting class and link it, append the partial
-$('.import-search').live("submit",function(e){
-    e.preventDefault();
-    targetListItems(this); 
-    $.post("/catalogmanager/search-class", $(this).serializeArray(), function(html) {
-        populateModal(html, 'Results')
-        showModal()
-        popovers() 
-    })  
-})
+/**
+ *  partial handling for new/existing records
+ */
+    $('.add-partial').live("submit",function(e){
+        e.preventDefault();
+        targetListItems(this); 
+        getPartial($(this).serializeArray());
+    })
 
-$('.search-result').live("click", function(e){
-    e.preventDefault();
-    var data = $(this).parents('.search-result-data').first().serializeArray();
-    console.log(data);
-    getPartial(data);
-})
+    function doSort(){
+        $('.list-items').sortable({ 
+            opacity: 0.6, 
+            placeholder: 'sortable-placeholder', 
+            handle: '.sort-handle', 
+            axis: 'y',          
+            forcePlaceholderSize: true,
+            update: function() {
+                //var order = $(this).sortable("serialize") + '&action=updateRecordsListings' 
+                //$.post("updateDB.php", order, function(theResponse){
+                //    $("#contentRight").html(theResponse)
+                //}) 															 
+            }
+        })
+    }       
 
-$('.expand-all').live('click', function(){
-    collapseRecursively(this, 'expand')    
-})
+    function getPartial(data){
+        hideModal()
+        $.post("/catalogmanager/fetch-partial", data, function(html){
+            $('.target').append(html)
+            initialCollapse()
+            $('.target').children().last().hide().addClass('appearing').slideDown(200, function(){
+                $(this).removeClass('appearing', 200)
+            })
+            clearTarget()
+            doSort()  
+        }) 
+    }  
 
-$('.collapse-all').live('click', function(){
-    collapseRecursively(this)    
-})
+    $('.remover').live("dblclick", function(){
+        var parts = getForm($(this)).attr('id').split('-')
+        if($(this).attr('parentId')){
+            var action = 'unlink'
+        }else{
+            var action = 'delete'
+        }
+        var data = {
+            model:  parts[0],
+            id:     parts[1],
+            action: action,
+        }
+        $.post('/catalogmanager/remove', data)
+        getBoundary(this).addClass('removing').fadeOut(function(){
+            $(this).remove()
+        })
+    }  
 
-$('.find-modal').live("change", function(){
-    searchClasses($(this)) 
-    $(this).val('')
-}) 
 
-$('.entity-header').live({
-    mouseenter:function(){$(this).children('.remover').children().removeClass('hide')},
-    mouseleave:function(){$(this).children('.remover').children().addClass('hide')}
-})
+/**
+ * make it easier on the eyes  
+ */
+    $('.entity-header').live({
+        mouseenter:function(){$(this).children('.remover').children().removeClass('hide')},
+        mouseleave:function(){$(this).children('.remover').children().addClass('hide')}
+    })
 
-$('.live-form').live({
-    mouseenter:function(){$(this).css({opacity: 1.0})},
-    mouseleave:function(){$(this).css({opacity: 0.7})},
-})
+    $('.live-form').live({
+        mouseenter:function(){$(this).css({opacity: 1.0})},
+        mouseleave:function(){$(this).css({opacity: 0.7})},
+    })
 
-$('.list-wrap').live({
-    mouseenter:function(){$(this).children('.list-items-helper').animate({opacity: 1.0}, 100)},
-    mouseleave:function(){$(this).children('.list-items-helper').animate({opacity: 0.2}, 100)},
-})
+    $('.list-wrap').live({
+        mouseenter:function(){$(this).children('.list-items-helper').animate({opacity: 1.0}, 100)},
+        mouseleave:function(){$(this).children('.list-items-helper').animate({opacity: 0.2}, 100)},
+    })
 
-$('.remover').live("dblclick", function(){ remove(this) })
+/**
+ * collapse/expand stuff 
+ */
+    $('.expand-all').live('click', function(){
+        collapseRecursively(this, 'expand')    
+    })
 
-$('.import-one-modal').live("change", function(){
-    entitySearch($(this)) 
-    $(this).val('')
-})  
+    $('.collapse-all').live('click', function(){
+        collapseRecursively(this)    
+    }) 
+
+    function collapseRecursively(ele, action){
+        var headers = getBoundary(ele).children().find('.entity-header')
+        var collapsing = $(headers).siblings('.entity-content')
+        var collapsers = $(headers).find('.collapser')
+        if('expand' === action){
+            $(collapsing).show()
+            var add = 'ui-icon-triangle-1-s'
+            var rem = 'ui-icon-triangle-1-e'
+            $(collapsers).removeClass(rem).addClass(add)
+        }else{ //collapse
+            $(collapsing).hide()
+            var add = 'ui-icon-triangle-1-e'
+            var rem = 'ui-icon-triangle-1-s' 
+            $(collapsers).removeClass(rem).addClass(add)
+        }
+    }
+
+    $('.collapser').live("click", function(){
+        getCollapser(this).toggleClass('ui-icon-triangle-1-s ui-icon-triangle-1-e')
+        getContent(this).slideToggle(100)
+    }
+
+    function initialCollapse(){
+        $('.initialCollapse').toggleClass('ui-icon-triangle-1-s ui-icon-triangle-1-e')
+            .removeClass('initialCollapse').parent().parent().siblings().hide()
+    }     
+
+
 
 $(document).ready(function(){
     initialCollapse()
