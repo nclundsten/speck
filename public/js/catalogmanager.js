@@ -11,7 +11,7 @@
 
     function targetListItems(trigger){
         clearTarget()
-        $(trigger).parentsUntil('.list-wrap').parent().children('.list-items').first().addClass('target')
+        $(trigger).parentsUntil('.list-wrap').parent().find('.list-items').first().addClass('target')
     }
 
     function targetTitle(ele){
@@ -27,7 +27,9 @@
         return getBoundary(ele).find('.entity-content').first()
     }
 
-    function clearTarget(){ $('.target').removeClass('target') }
+    function clearTarget(){ 
+        $('.target').removeClass('target') 
+    }
 
 
 /**
@@ -56,23 +58,17 @@
         })  
     })
     
-    //search multiple classes //note: need to update this to work like the other one
-    $('.find-modal').live("change", function(){
-        searchClasses($(this)) 
-        $(this).val('')
-    })   
-    function searchClasses(trigger){
-        var data = {
-            value:     $(trigger).val(),
-        }
-        $.post("/catalogmanager/search-classes", data, function(html) {
+    // search many classes (catalog search)
+    $('#catalog-search').live("submit", function(e){
+        e.preventDefault()
+        $.post("/catalogmanager/search-classes", $(this).serializeArray(), function(html) {
             goModal(html, 'Results')
         })
-    }  
+    })  
 
     $('.search-result').live("click", function(e){
         e.preventDefault();
-        var data = $(this).parents('.search-result-data').first().serializeArray();
+        var data = $(this).parents('form.search-result-data').first().serializeArray();
         console.log(data);
         getPartial(data);
     })
@@ -82,11 +78,15 @@
  *  auto-save
  */
     $('.live-form input, .live-form textarea, .live-form select').live('change', function(){
+        targetTitle(this);
         var form = getForm(this)
         var parts = form.attr('id').split('-')
         $.post('/catalogmanager/update-record?className='+parts[0]+'&id='+parts[1], form.serializeArray(), function(title){
             $('.target').html('&nbsp; '+title)
         })    
+    })
+    $('.live-form').live('submit', function(e){
+        e.preventDefault();
     })
 
 
@@ -144,7 +144,7 @@
         getBoundary(this).addClass('removing').fadeOut(function(){
             $(this).remove()
         })
-    }  
+    })  
 
 
 /**
@@ -196,13 +196,12 @@
     $('.collapser').live("click", function(){
         getCollapser(this).toggleClass('ui-icon-triangle-1-s ui-icon-triangle-1-e')
         getContent(this).slideToggle(100)
-    }
+    })
 
     function initialCollapse(){
         $('.initialCollapse').toggleClass('ui-icon-triangle-1-s ui-icon-triangle-1-e')
             .removeClass('initialCollapse').parent().parent().siblings().hide()
     }     
-
 
 
 $(document).ready(function(){
