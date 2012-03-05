@@ -1,10 +1,14 @@
 <?php
 return array(
     'modules' => array(
+        //'AssetLoader',
         'Application',
         'ZfcUser',
         'ZfcBase',
-        //'SpeckCatalog',
+        'SpeckCatalog',
+        //'TwitterBootstrap',
+        //'AsseticBundle',
+        //'Install',
         //'SpeckBase',
     ),
     'module_listener_options' => array( 
