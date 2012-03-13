@@ -1,5 +1,5 @@
 <?php
-namespace Extra;
+namespace Application\Extra;
 
 class Container 
 {

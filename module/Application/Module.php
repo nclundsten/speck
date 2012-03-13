@@ -4,7 +4,7 @@ namespace Application;
 
 use Zend\Module\Manager,
     Zend\EventManager\StaticEventManager,
-    //Zend\Navigation,
+    Application\Extra\Page,
     Zend\Module\Consumer\AutoloaderProvider;
 
 class Module implements AutoloaderProvider
@@ -30,7 +30,6 @@ class Module implements AutoloaderProvider
             'Zend\Loader\StandardAutoloader' => array(
                 'namespaces' => array(
                     __NAMESPACE__ => __DIR__ . '/src/' . __NAMESPACE__,
-                    'Extra' => __DIR__ . '/src/Extra',
                 ),
             ),
         );
@@ -47,7 +46,7 @@ class Module implements AutoloaderProvider
         $basePath     = $app->getRequest()->getBasePath();
         $locator      = $app->getLocator();
         $renderer     = $locator->get('Zend\View\Renderer\PhpRenderer');
-        $home =  new \Extra\Page;
+        $home =  new Page;
         $home->setTitle('Home')->setUrl('/');
         $renderer->plugin('menu')->addPage($home);
         $this->moduleManager->events()->trigger('navigation', $renderer->plugin('menu'));
