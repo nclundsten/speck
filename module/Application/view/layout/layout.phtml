@@ -48,12 +48,9 @@ echo $this->doctype();
           </a>
           <a class="brand" href="<?php echo $this->url('home') ?>">SpeckCommerce</a>
           <div class="nav-collapse">
-        <ul class="nav">
-            <?php echo $this->menu()->setTag(false); ?>
-        </ul>   
-
-
-
+            <ul class="nav">
+              <?php echo $this->menu()->setTag(false); ?>
+            </ul>   
           <?php if ($this->zfcUserIdentity()): ?>
               <ul class="nav secondary-nav pull-right">
                 <li><?php echo $this->gravatar($this->zfcUserIdentity()->getEmail(), array('img_size' => 25), array('style' => 'padding-top: 8px;')) ?></li>
