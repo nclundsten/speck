@@ -38,12 +38,12 @@ class MenuHelper extends AbstractHelper
     
     public function renderLink($page)
     {
+        if($page->getWrapTag()){
+            $this->depth++;
+            $this->begin .= $this->indent() . "<" . $page->getWrapTag() . $page->renderAttributes('wrap') . ">\n";
+            $this->end    = $this->indent() . "</" . $page->getWrapTag() . ">\n" . $this->end;
+        }
         if($page->getPageTag()){
-            if($page->getWrapTag()){
-                $this->depth++;
-                $this->begin .= $this->indent() . "<" . $page->getWrapTag() . $page->renderAttributes('wrap') . ">\n";
-                $this->end    = $this->indent() . "</" . $page->getWrapTag() . ">\n" . $this->end;
-            }
             $this->depth++;
             $this->begin .= $this->indent() . "<" . $page->getPageTag() . $page->renderAttributes('page');
             if($page->pageSelfTerminates()){

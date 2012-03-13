@@ -4,7 +4,7 @@ return array(
         'Application',
         'ZfcUser',
         'ZfcBase',
-        //'SpeckCatalog',
+        'SpeckCatalog',
         //'SpeckBase',
     ),
     'module_listener_options' => array( 
