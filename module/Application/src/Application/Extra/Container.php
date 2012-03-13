@@ -27,6 +27,13 @@ class Container
         $this->pages[] = $page;
         return $this;
     }
+    public function addPages($pages)
+    {
+        foreach($pages as $page){
+            $this->addPage($page);
+        }
+        return $this;
+    }
 
     public function hasPages()
     {
