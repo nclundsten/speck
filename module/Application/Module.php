@@ -16,7 +16,6 @@ class Module implements AutoloaderProvider
     public function init(Manager $moduleManager)
     {
         $this->moduleManager = $moduleManager;
-        
         $events = StaticEventManager::getInstance();
         $events->attach('bootstrap', 'bootstrap', array($this, 'initializeView'), 100);
     }
@@ -53,11 +52,5 @@ class Module implements AutoloaderProvider
         $renderer->plugin('url')->setRouter($app->getRouter());
         $renderer->doctype()->setDoctype('HTML5');
         $renderer->plugin('basePath')->setBasePath($basePath);
-    }
- 
-    public function setModuleManager($moduleManager)
-    {
-        $this->moduleManager = $moduleManager;
-        return $this;
     }
 }

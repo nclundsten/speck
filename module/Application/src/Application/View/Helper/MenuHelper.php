@@ -82,6 +82,7 @@ class MenuHelper extends AbstractHelper
         }
         foreach($this->pages as $page){
             $this->renderLink($page);
+            $this->depth = 0;
         }
 
         return $this->begin . $this->end;

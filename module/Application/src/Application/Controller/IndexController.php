@@ -3,8 +3,7 @@
 namespace Application\Controller;
 
 use Zend\Mvc\Controller\ActionController,
-    Zend\View\Model\ViewModel,
-    Zend\Navigation;
+    Zend\View\Model\ViewModel;
 
 class IndexController extends ActionController
 {
