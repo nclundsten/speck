@@ -4,7 +4,7 @@ namespace Application;
 
 use Zend\Module\Manager,
     Zend\EventManager\StaticEventManager,
-    Zend\Navigation,
+    //Zend\Navigation,
     Zend\Module\Consumer\AutoloaderProvider;
 
 class Module implements AutoloaderProvider
@@ -30,6 +30,7 @@ class Module implements AutoloaderProvider
             'Zend\Loader\StandardAutoloader' => array(
                 'namespaces' => array(
                     __NAMESPACE__ => __DIR__ . '/src/' . __NAMESPACE__,
+                    'Extra' => __DIR__ . '/src/Extra',
                 ),
             ),
         );
@@ -46,26 +47,15 @@ class Module implements AutoloaderProvider
         $basePath     = $app->getRequest()->getBasePath();
         $locator      = $app->getLocator();
         $renderer     = $locator->get('Zend\View\Renderer\PhpRenderer');
-
-        $home =  new Navigation\Page\Uri();
-        $home->setUri('/')->setLabel('home');
-        $navigation = new Navigation\Navigation(array($home));
-        
-        //event for navigation!
-        $this->moduleManager->events()->trigger('navigation', $navigation);
-        $renderer->navigation($navigation);
+        $home =  new \Extra\Page;
+        $home->setTitle('Home')->setUrl('/');
+        $renderer->plugin('menu')->addPage($home);
+        $this->moduleManager->events()->trigger('navigation', $renderer->plugin('menu'));
         $renderer->plugin('url')->setRouter($app->getRouter());
         $renderer->doctype()->setDoctype('HTML5');
         $renderer->plugin('basePath')->setBasePath($basePath);
     }
  
-
- 
-    /**
-     * Set moduleManager.
-     *
-     * @param $moduleManager the value to be set
-     */
     public function setModuleManager($moduleManager)
     {
         $this->moduleManager = $moduleManager;

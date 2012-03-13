@@ -50,22 +50,21 @@ return array(
             'Zend\View\Renderer\PhpRenderer' => array(
                 'parameters' => array(
                     'resolver' => 'Zend\View\Resolver\AggregateResolver',
-                    //'broker'   => 'Zend\View\HelperBroker',
+                    'broker'   => 'Zend\View\HelperBroker',
                 ),
             ),
-            //'Zend\View\HelperBroker' => array(
-            //    'parameters' => array(
-            //        'loader' => 'Zend\View\HelperLoader',
-            //    ),
-            //),
-            //'Zend\View\HelperLoader' => array(
-            //    'parameters' => array(
-            //        'map' => array(
-            //            'nav' =>
-
-            //        ),
-            //    ),
-            //),
+            'Zend\View\HelperBroker' => array(
+                'parameters' => array(
+                    'loader' => 'Zend\View\HelperLoader',
+                ),
+            ),
+            'Zend\View\HelperLoader' => array(
+                'parameters' => array(
+                    'map' => array(
+                        'menu' => 'Application\View\Helper\MenuHelper',
+                    ),
+                ),
+            ),
             //'Zend\View\Helper\Navigation' => array(
             //    'parameters' => array(
             //        'container' => 'Zend\Navigation\Container',

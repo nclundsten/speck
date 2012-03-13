@@ -10,9 +10,6 @@ class IndexController extends ActionController
 {
     public function indexAction()
     {
-        $home =  new Navigation\Page\Uri();
-        $home->setUri('/')->setLabel('home');
-        $navigation = new Navigation\Navigation(array($home));
-        return new ViewModel(array('navigation' => $navigation));
+        return new ViewModel();
     }
 }

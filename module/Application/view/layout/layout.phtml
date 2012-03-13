@@ -36,10 +36,6 @@ echo $this->doctype();
   </head>
 
   <body>
-                                      
-
-
-
     <div class="navbar navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container">
@@ -51,12 +47,10 @@ echo $this->doctype();
           </a>
           <a class="brand" href="<?php echo $this->url('home') ?>">SpeckCommerce</a>
           <div class="nav-collapse">
+        <ul class="nav">
+            <?php echo $this->menu()->setTag(false); ?>
+        </ul>   
 
-            <!-- <ul class="nav">
-              <li class="active"><a href="<?php echo $this->url('home') ?>">Home</a></li>
-            </ul> -->
-    
-          <?php echo $this->navigation()->menu()->setUlClass('nav'); ?>
 
 
           <?php if ($this->zfcUserIdentity()): ?>
@@ -91,4 +85,6 @@ echo $this->doctype();
     </div> <!-- /container -->
 
   </body>
+        
 </html>
+
