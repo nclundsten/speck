@@ -106,6 +106,7 @@ class Container
                 $this->setAttribute($element, $attr, $val);
             }
         }
+        return $this;
     }
 
     public function setAttribute($el, $attr, $val, $merge=false)

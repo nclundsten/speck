@@ -49,7 +49,7 @@ echo $this->doctype();
           <a class="brand" href="<?php echo $this->url('home') ?>">SpeckCommerce</a>
           <div class="nav-collapse">
             <ul class="nav">
-              <?php echo $this->menu()->setTag(false); ?>
+              <?php echo $this->menu()->setDepth(3)->setTag(false); ?>
             </ul>   
           <?php if ($this->zfcUserIdentity()): ?>
               <ul class="nav secondary-nav pull-right">

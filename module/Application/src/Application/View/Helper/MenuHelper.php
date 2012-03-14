@@ -8,11 +8,9 @@ class MenuHelper extends AbstractHelper
 {
     protected $pages;
     protected $tag = "ul";
-    protected $begin;
-    protected $end;
+    protected $html;
     protected $depth = 0;
     protected $indent = '    ';
-
 
     public function __invoke()
     {
@@ -38,36 +36,42 @@ class MenuHelper extends AbstractHelper
     
     public function renderLink($page)
     {
+        $this->depth++;
+
         if($page->getWrapTag()){
-            $this->depth++;
-            $this->begin .= $this->indent() . "<" . $page->getWrapTag() . $page->renderAttributes('wrap') . ">\n";
-            $this->end    = $this->indent() . "</" . $page->getWrapTag() . ">\n" . $this->end;
+            $this->html .= $this->indent() . "<" . $page->getWrapTag() . $page->renderAttributes('wrap') . ">\n";
         }
+        
         if($page->getPageTag()){
             $this->depth++;
-            $this->begin .= $this->indent() . "<" . $page->getPageTag() . $page->renderAttributes('page');
+        
+            $this->html .= $this->indent() . "<" . $page->getPageTag() . $page->renderAttributes('page');
             if($page->pageSelfTerminates()){
-                $this->begin .= "/>\n";
+                $this->html .= "/>\n";
             } else {
-                $this->begin .= ">" . $page->getTitle() . "</" . $page->getPageTag() . ">\n";
+                $this->html .= ">" . $page->getTitle() . "</" . $page->getPageTag() . ">\n";
             }
-        }  
+        
+            $this->depth--;
+        }
 
         if($page->hasPages()){
-            $this->renderContainer($page);
+            $this->depth++;
+        
+            $this->html .= $this->indent() . "<" . $page->getContainerTag() . $page->renderAttributes('container') . ">\n";
             foreach($page->getPages() as $childPage){
                 $this->renderLink($childPage);
             }
+            $this->html   .= $this->indent() . "</" . $page->getContainerTag() . ">\n";
+        
+            $this->depth--;
         }
-    }
 
-    public function renderContainer($container)
-    {
-        if ($container->getContainerTag()){
-            $this->begin .= $this->indent() . "<" . $container->getContainerTag() . $container->renderAttributes('container') . ">\n";
-            $this->end    = $this->indent() . "</" . $container->getContainerTag() . ">\n" . $this->end;
-            
-        }     
+        if($page->getWrapTag()){
+            $this->html    .= $this->indent() . "</" . $page->getWrapTag() . ">\n";
+        }
+
+        $this->depth--;   
     }
 
     public function render()
@@ -77,15 +81,16 @@ class MenuHelper extends AbstractHelper
         }
 
         if($this->tag){
-            $this->begin .= "<" . $this->tag . ">\n";
-            $this->end .= "</" . $this->tag . ">";
-        }
-        foreach($this->pages as $page){
-            $this->renderLink($page);
-            $this->depth = 0;
+            $this->html .= "<" . $this->tag . ">\n";
+        }else{
+            $this->html .= "\n";
         }
 
-        return $this->begin . $this->end;
+        foreach ($this->pages as $page){
+            $this->renderLink($page);
+        }
+
+        return $this->html . "\n";
     }
 
     public function getIndent()
@@ -111,7 +116,6 @@ class MenuHelper extends AbstractHelper
         return $this;
     }
 
- 
     public function getPages()
     {
         return $this->pages;
@@ -126,6 +130,17 @@ class MenuHelper extends AbstractHelper
     public function setPages($pages)
     {
         $this->pages = $pages;
+        return $this;
+    }
+
+    public function getDepth()
+    {
+        return $this->depth;
+    }
+
+    public function setDepth($depth)
+    {
+        $this->depth = $depth;
         return $this;
     }
 }   
