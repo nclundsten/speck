@@ -6,7 +6,7 @@ use Zend\View\Helper\AbstractHelper;
 
 class MenuHelper extends AbstractHelper
 {
-    protected $pages;
+    protected $pages = array();
     protected $tag = "ul";
     protected $html;
     protected $depth = 0;
@@ -76,10 +76,6 @@ class MenuHelper extends AbstractHelper
 
     public function render()
     {
-        if(!isset($this->pages)){
-            die('oops');
-        }
-
         if($this->tag){
             $this->html .= "<" . $this->tag . ">\n";
         }else{
@@ -90,7 +86,13 @@ class MenuHelper extends AbstractHelper
             $this->renderLink($page);
         }
 
-        return $this->html . "\n";
+        if($this->tag){
+            $this->html .= "</" . $this->tag . ">\n";
+        }else{
+            $this->html .= "\n";
+        }  
+
+        return $this->html;
     }
 
     public function getIndent()
